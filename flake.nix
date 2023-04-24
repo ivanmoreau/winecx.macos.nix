@@ -16,7 +16,7 @@
             
             # fetchzip is redundant here, as mkDerivation's unpackPhase will unpack the tar.xz automatically.
             src = pkgs.fetchurl {
-              url = "https://github.com/Gcenx/winecx/releases/download/crossover-wine-22.1.0/wine-crossover-${this.version}-osx64.tar.xz";
+              url = "https://github.com/Gcenx/winecx/releases/download/crossover-wine-${this.version}/wine-crossover-${this.version}-osx64.tar.xz";
               sha256 = "sha256-SmN15DwuZ0pVt0bvs9hrCWz5Blqa6/qgW0KgjtAqRqA";
             };
 
@@ -33,7 +33,28 @@
             '';
           });
 
-          packages.default = self'.packages.winecx;
+        packages.wine-staging = pkgs.stdenv.mkDerivation (this: {
+            name = "wine-staging";
+            version = "8.5";
+            depsBuildBuild = with pkgs; [ makeWrapper ];
+            
+            src = pkgs.fetchurl {
+              url = "https://github.com/Gcenx/macOS_Wine_builds/releases/download/${this.version}/wine-staging-${this.version}-osx64.tar.xz";
+              sha256 = "sha256-R8vyLfzl5xj1NhysqS1ZVpIKiX13ly2qWoDb6aGBtkk";
+            };
+
+            sourceRoot = ".";
+
+            installPhase = ''
+              mkdir -p $out/Applications
+              mv Wine\ Staging.app $out/Applications/
+              makeWrapper $out/Applications/Wine\ Staging.app/Contents/Resources/wine/bin/wine64 $out/bin/wine64 \
+                --prefix PATH : $out/Applications/Wine\ Staging.app/Contents/Resources/wine/bin \
+                --prefix PATH : $out/Applications/Wine\ Staging.app/Contents/Resources/start/bin
+            '';
+          });
+
+        packages.default = self'.packages.winecx;
 
         devShells.default = pkgs.mkShell {
             buildInputs = [ 
